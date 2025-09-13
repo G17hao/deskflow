@@ -37,6 +37,10 @@
 #include <ctime>
 #include <stdexcept>
 
+#if defined(__APPLE__)
+#include <Carbon/Carbon.h>
+#endif
+
 using namespace deskflow::server;
 
 //
@@ -451,6 +455,44 @@ void Server::switchScreen(BaseClientProxy *dst, int32_t x, int32_t y, bool forSc
         m_primaryClient->secureInputNotification(secureInputApplication);
         // display notification on the client
         dst->secureInputNotification(secureInputApplication);
+      }
+    }
+#endif
+
+    // macOS: optionally adjust input source when leaving/returning
+#if defined(__APPLE__)
+    if (m_macSwitchToABC) {
+      // Leaving primary (Mac) to a remote client → switch to ABC
+      if (m_active == m_primaryClient && dst != m_primaryClient) {
+        // Save current input source
+        if (m_prevInputSource != nullptr) {
+          CFRelease((TISInputSourceRef)m_prevInputSource);
+          m_prevInputSource = nullptr;
+        }
+        m_prevInputSource = TISCopyCurrentKeyboardInputSource();
+
+        // Switch to ABC layout if available
+        CFStringRef abcID = CFSTR("com.apple.keylayout.ABC");
+        const void *keys[] = {kTISPropertyInputSourceID};
+        const void *vals[] = {abcID};
+        CFDictionaryRef filter = CFDictionaryCreate(
+            kCFAllocatorDefault, keys, vals, 1, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks
+        );
+        CFArrayRef list = TISCreateInputSourceList(filter, false);
+        if (list && CFArrayGetCount(list) > 0) {
+          TISInputSourceRef src = (TISInputSourceRef)CFArrayGetValueAtIndex(list, 0);
+          CFRetain(src);
+          TISSelectInputSource(src);
+          CFRelease(src);
+        }
+        if (list) CFRelease(list);
+        if (filter) CFRelease(filter);
+      }
+      // Returning to primary (Mac) → restore previous input source
+      else if (dst == m_primaryClient && m_prevInputSource != nullptr) {
+        TISSelectInputSource((TISInputSourceRef)m_prevInputSource);
+        CFRelease((TISInputSourceRef)m_prevInputSource);
+        m_prevInputSource = nullptr;
       }
     }
 #endif
@@ -1124,6 +1166,11 @@ void Server::processOptions()
         m_maximumClipboardSize = static_cast<size_t>(value);
       }
     }
+#if defined(__APPLE__)
+    else if (id == kOptionMacSwitchToABC) {
+      m_macSwitchToABC = (value != 0);
+    }
+#endif
   }
   if (m_relativeMoves && !newRelativeMoves) {
     stopRelativeMoves();

@@ -123,6 +123,7 @@ void ServerConfig::commit()
   settings().setValue("switchDoubleTap", switchDoubleTap());
   settings().setValue("switchCornerSize", switchCornerSize());
   settings().setValue("disableLockToScreen", disableLockToScreen());
+  settings().setValue("macSwitchToABC", macSwitchToABC());
   settings().setValue("clipboardSharing", clipboardSharing());
   settings().setValue("clipboardSharingSize", QVariant::fromValue(clipboardSharingSize()));
 
@@ -174,6 +175,7 @@ void ServerConfig::recall()
   setSwitchDoubleTap(settings().value("switchDoubleTap", 250).toInt());
   setSwitchCornerSize(settings().value("switchCornerSize").toInt());
   setDisableLockToScreen(settings().value("disableLockToScreen", false).toBool());
+  setMacSwitchToABC(settings().value("macSwitchToABC", false).toBool());
   setClipboardSharingSize(
       settings().value("clipboardSharingSize", (int)ServerConfig::defaultClipboardSharingSize()).toULongLong()
   );
@@ -279,6 +281,10 @@ QTextStream &operator<<(QTextStream &outStream, const ServerConfig &config)
             << "win32KeepForeground = " << (config.win32KeepForeground() ? "true" : "false") << Qt::endl;
   outStream << "\t"
             << "disableLockToScreen = " << (config.disableLockToScreen() ? "true" : "false") << Qt::endl;
+#ifdef Q_OS_MAC
+  outStream << "\t"
+            << "macSwitchToABC = " << (config.macSwitchToABC() ? "true" : "false") << Qt::endl;
+#endif
   outStream << "\t"
             << "clipboardSharing = " << (config.clipboardSharing() ? "true" : "false") << Qt::endl;
   outStream << "\t"

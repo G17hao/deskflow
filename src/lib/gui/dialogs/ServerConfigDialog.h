@@ -61,6 +61,7 @@ protected:
 
   void toggleLockToScreen(bool disabled);
   void toggleWin32Foreground(bool enabled);
+  void toggleMacSwitchToABC(bool enabled);
 
   void toggleClipboard(bool enabled);
   void setClipboardLimit(int limit);

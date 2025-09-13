@@ -149,6 +149,18 @@ ServerConfigDialog::ServerConfigDialog(QWidget *parent, ServerConfig &config)
 
   ui->screenSetupView->setModel(&m_screenSetupModel);
 
+#ifdef Q_OS_MAC
+  // macOS-only: UI and wiring for switching to ABC on remote switch
+  if (auto macABC = this->findChild<QCheckBox*>("cbMacSwitchToABC"); macABC) {
+    macABC->setChecked(serverConfig().macSwitchToABC());
+    connect(macABC, &QCheckBox::toggled, this, &ServerConfigDialog::toggleMacSwitchToABC);
+  }
+#else
+  if (auto macABC = this->findChild<QCheckBox*>("cbMacSwitchToABC"); macABC) {
+    macABC->setVisible(false);
+  }
+#endif
+
   auto &screens = serverConfig().screens();
   auto server = std::ranges::find_if(screens, [this](const Screen &screen) {
     return (screen.name() == serverConfig().getServerName());
@@ -435,6 +447,12 @@ void ServerConfigDialog::toggleLockToScreen(bool disabled)
 void ServerConfigDialog::toggleWin32Foreground(bool enabled)
 {
   serverConfig().setWin32KeepForeground(enabled);
+  onChange();
+}
+
+void ServerConfigDialog::toggleMacSwitchToABC(bool enabled)
+{
+  serverConfig().setMacSwitchToABC(enabled);
   onChange();
 }
 

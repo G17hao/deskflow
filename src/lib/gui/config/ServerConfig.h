@@ -126,6 +126,10 @@ public:
   {
     return m_DisableLockToScreen;
   }
+  bool macSwitchToABC() const
+  {
+    return m_MacSwitchToABC;
+  }
   bool clipboardSharing() const
   {
     return m_ClipboardSharing;
@@ -230,6 +234,10 @@ private:
   {
     m_DisableLockToScreen = on;
   }
+  void setMacSwitchToABC(bool on)
+  {
+    m_MacSwitchToABC = on;
+  }
   void setClipboardSharing(bool on)
   {
     m_ClipboardSharing = on;
@@ -264,6 +272,7 @@ private:
   int m_SwitchCornerSize = 0;
   bool m_DisableLockToScreen = false;
   bool m_ClipboardSharing = true;
+  bool m_MacSwitchToABC = false;
   QString m_ClientAddress = "";
   QList<bool> m_SwitchCorners;
   HotkeyList m_Hotkeys;

@@ -128,16 +128,23 @@ macro(configure_unix_libs)
 
   endif()
 
-  # pthread is used on both Linux and Mac
+  # pthread usage: on macOS, pthread symbols are in libSystem, no separate -lpthread
   check_library_exists("pthread" pthread_create "" HAVE_PTHREAD)
-  if(HAVE_PTHREAD)
+  if(APPLE)
+    # Do not append -lpthread; we already define _THREAD_SAFE below.
+  elseif(HAVE_PTHREAD)
     list(APPEND libs pthread)
   else()
     message(FATAL_ERROR "Missing library: pthread")
   endif()
 
   if(APPLE)
-    set(CMAKE_CXX_FLAGS "--sysroot ${CMAKE_OSX_SYSROOT} ${CMAKE_CXX_FLAGS} -DGTEST_USE_OWN_TR1_TUPLE=1")
+    # Respect CMake's own sysroot handling; only inject --sysroot when non-empty
+    if(CMAKE_OSX_SYSROOT)
+      set(CMAKE_CXX_FLAGS "--sysroot ${CMAKE_OSX_SYSROOT} ${CMAKE_CXX_FLAGS} -DGTEST_USE_OWN_TR1_TUPLE=1")
+    else()
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGTEST_USE_OWN_TR1_TUPLE=1")
+    endif()
     find_library(lib_ScreenSaver ScreenSaver)
     find_library(lib_IOKit IOKit)
     find_library(lib_ApplicationServices ApplicationServices)

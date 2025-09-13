@@ -460,4 +460,10 @@ private:
 
   bool m_disableLockToScreen = false;
   bool m_enableClipboard = true;
+
+#if defined(__APPLE__)
+  // macOS: if enabled, switch to ABC when leaving primary; restore on return
+  bool m_macSwitchToABC = false;
+  void *m_prevInputSource = nullptr; // TISInputSourceRef
+#endif
 };
